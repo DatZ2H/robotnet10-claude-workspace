@@ -102,6 +102,8 @@ docker compose -f srcs/RobotNet10/FleetManager/docker-compose.yml up
 | slam-cartographer-context.md | srcs/**/CartographerSharp/**, CeresSharp/**, SLAM/**, Localization/** |
 | shared-contracts.md | srcs/**/Shared/** |
 | test-standards.md | srcs/**/*.Test/**, *Tests*/** |
+| blazor-ui.md | srcs/**/*.Client/**, srcs/**/Components/** |
+| mqtt-communication.md | srcs/**/MqttConnection/**, srcs/**/RobotConnections/** |
 
 ## Available commands
 
@@ -109,6 +111,12 @@ docker compose -f srcs/RobotNet10/FleetManager/docker-compose.yml up
 |---------|-------|
 | /onboard | Onboarding tương tác — chọn domain để bắt đầu |
 | /explain-domain | Trace implementation của domain cụ thể |
+| /safety-review | Review safety-critical changes trước commit |
+| /build [target] | Build shortcut — all, robotapp, fleet, hoặc project name |
+| /test-domain [domain] | Test theo domain — không cần nhớ path + framework |
+| /trace-vda5050 [message] | Trace VDA 5050 message flow (Order/State/InstantAction) |
+| /check-shared | Kiểm tra backward compatibility của Shared/ changes |
+| /device-scaffold [name] | Scaffold device mới theo pattern chuẩn |
 
 ## Khi cần tham khảo thêm
 
