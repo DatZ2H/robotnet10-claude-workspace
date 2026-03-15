@@ -24,7 +24,7 @@ Before proposing ANY change to safety-critical code, verify:
 
 - [ ] **E-Stop path**: Emergency stop logic is NOT blocked or bypassed
 - [ ] **CiA402 state transitions**: Changes follow CiA402 state machine spec (Not Ready -> Switch On Disabled -> Ready To Switch On -> Switched On -> Operation Enabled)
-- [ ] **Velocity limits**: No hardcoded velocity values bypass IVelocityController limits
+- [ ] **Velocity limits**: No hardcoded velocity values bypass `IVelocityController` (Services/Navigation/IVelocityController.cs — SetVelocity, SetAcceleration, SetDeceleration)
 - [ ] **Unit test coverage**: Change is covered by existing or new unit tests
 - [ ] **Timeout handling**: Async operations have appropriate timeouts
 - [ ] **Error recovery**: Failure paths transition to safe state (motor disabled)
@@ -34,7 +34,7 @@ Before proposing ANY change to safety-critical code, verify:
 ## NEVER do
 
 - Remove or weaken safety checks (ISafety interface methods)
-- Bypass ISafety interface (handles E-Stop and safety chain)
+- Bypass ISafety interface (manages speed limits and safety stop flag via IsSafetyStop, MinSpeed, UpdateSpeed)
 - Hardcode velocity, acceleration, or torque values (use configuration)
 - Change CiA402 state transitions without understanding the full spec
 - Remove timeout guards on motor commands
@@ -42,7 +42,7 @@ Before proposing ANY change to safety-critical code, verify:
 
 ## Required patterns
 
-- All velocity commands MUST go through `IVelocityController`
+- All velocity commands MUST go through `IVelocityController` (SetVelocity, SetAcceleration, SetDeceleration, Reset, IsReady) — defined in Services/Navigation/IVelocityController.cs
 - Motor enable/disable MUST use CiA402 state machine transitions
 - Emergency stop MUST be handled at every control layer
 - All CANOpen SDO/PDO operations MUST have timeout handling
@@ -54,4 +54,4 @@ Before proposing ANY change to safety-critical code, verify:
 - **CSV mode**: Cyclic Synchronous Velocity — IPC sends velocity targets every 20ms (50 Hz)
 - **EDS file**: Electronic Data Sheet defining CANOpen object dictionary — see `eds/` folder
 - **Driver**: MBDV-2X-520AC-F02 (dual-axis servo, MOONS brand)
-- **Motor**: MSD180-10-075-20GSL (750W, gear ratio 10:1, no brake)
+- **Motor**: MSD180-10-075-20GSL-N (750W, gear ratio 10:1, no brake)

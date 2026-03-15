@@ -48,9 +48,14 @@ if [ -d "$TARGET_CLAUDE" ] || [ -L "$TARGET_CLAUDE" ]; then
     rm -rf "$TARGET_CLAUDE"
 fi
 
-# Create symlink
-ln -s "$SCRIPT_DIR/.claude" "$TARGET_CLAUDE"
-echo "Created symlink: $TARGET_CLAUDE -> $SCRIPT_DIR/.claude"
+# Create symlink (fallback to copy if symlink fails, e.g. no permission)
+if ln -s "$SCRIPT_DIR/.claude" "$TARGET_CLAUDE" 2>/dev/null; then
+    echo "Created symlink: $TARGET_CLAUDE -> $SCRIPT_DIR/.claude"
+else
+    echo "Symlink failed (may need elevated permissions). Falling back to copy..."
+    cp -r "$SCRIPT_DIR/.claude" "$TARGET_CLAUDE"
+    echo "Copied .claude/ to $TARGET_CLAUDE (note: changes won't sync back to this repo)"
+fi
 
 # Verify
 if [ -f "$TARGET_CLAUDE/CLAUDE.md" ]; then

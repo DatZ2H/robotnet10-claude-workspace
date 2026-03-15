@@ -8,20 +8,26 @@ globs:
 # Test Standards
 
 ## Framework stack
-- **Test framework:** NUnit 4.x
+- **Test frameworks:** NUnit 4.x **AND** xUnit 2.9.x (mixed — check project before writing tests)
 - **Mocking:** Moq
 - **Database:** EF Core InMemory provider (for integration tests)
-- **Assertions:** NUnit Assert + constraint model
+- **Assertions:** NUnit Assert + constraint model / xUnit Assert
 
-## Existing test projects (5)
+## Existing test projects (8)
 
-| Project | Tests for |
-|---------|-----------|
-| RobotNet10.GlobalPathPlanner.Test | Path planning algorithms (A*, graph traversal) |
-| RobotNet10.MapManager.Test | Map data operations (CRUD, VDMA LIF) |
-| RobotNet10.RobotManager.Test | Robot state management |
-| RobotNet10.ScriptEngine.Test | Script compilation, execution, variables |
-| RobotNet10.StorageManager.Test | Storage operations |
+| Project | Location | Framework | Tests for |
+|---------|----------|-----------|-----------|
+| RobotNet10.GlobalPathPlanner.Test | Tests/ | **xUnit** | Path planning algorithms (A*, graph traversal) |
+| RobotNet10.MapManager.Test | Tests/ | **NUnit** | Map data operations (CRUD, VDMA LIF) |
+| RobotNet10.NavigationTune.Test | Tests/ | **xUnit** | Navigation tuning algorithms |
+| RobotNet10.RobotManager.Test | Tests/ | **NUnit** | Robot state management |
+| RobotNet10.ScriptEngine.Test | Tests/ | **NUnit** | Script compilation, execution, variables |
+| RobotNet10.StorageManager.Test | Tests/ | **xUnit** | Storage operations |
+| CeresSharp.Test | RobotApp/Communication/ | **NUnit** | Ceres solver native interop |
+| RobotNet10.RobotApp.Tests | RobotApp/ | **xUnit** | RobotApp integration tests |
+
+> [!IMPORTANT]
+> Check the project's .csproj for `PackageReference` to confirm NUnit vs xUnit BEFORE writing tests.
 
 ## Naming convention
 
@@ -30,14 +36,16 @@ globs:
 public class GlobalPathPlannerTests
 
 // Test method: {Method}_{Scenario}_{Expected}
+// NUnit:
 [Test]
 public void FindPath_WithValidNodes_ReturnsShortestPath()
 
-[Test]
-public void FindPath_WithUnreachableNode_ReturnsNull()
+// xUnit:
+[Fact]
+public void FindPath_WithValidNodes_ReturnsShortestPath()
 ```
 
-## Test structure (Arrange-Act-Assert)
+## Test structure — NUnit (Arrange-Act-Assert)
 
 ```csharp
 [Test]
@@ -57,10 +65,38 @@ public async Task ProcessOrderAsync_WithValidOrder_ReturnsSuccess()
 }
 ```
 
-## Guidelines
-- One assert per test (prefer focused tests over multi-assert)
+## Test structure — xUnit (Arrange-Act-Assert)
+
+```csharp
+[Fact]
+public async Task ProcessOrderAsync_WithValidOrder_ReturnsSuccess()
+{
+    // Arrange
+    var mockValidator = new Mock<IVda5050Validator>();
+    mockValidator.Setup(v => v.ValidateOrder(It.IsAny<Order>()))
+        .Returns(ValidationResult.Success);
+    var processor = new OrderProcessor(mockValidator.Object);
+
+    // Act
+    var result = await processor.ProcessOrderAsync(validOrder);
+
+    // Assert
+    Assert.True(result.IsSuccess);
+}
+```
+
+## Guidelines — NUnit projects
 - Use `[SetUp]` and `[TearDown]` for shared setup/cleanup
 - Use `[TestCase]` for parameterized tests
+- Assertions: `Assert.That(value, Is.EqualTo(expected))` (constraint model)
+
+## Guidelines — xUnit projects
+- Use constructor for setup, implement `IDisposable` for cleanup
+- Use `[Theory]` + `[InlineData]` for parameterized tests
+- Assertions: `Assert.Equal(expected, actual)`, `Assert.True(condition)`
+
+## Guidelines — common
+- One assert per test (prefer focused tests over multi-assert)
 - Mock external dependencies (CANOpen, MQTT, file system)
 - Do NOT mock the class under test
 - Test both happy path and error cases

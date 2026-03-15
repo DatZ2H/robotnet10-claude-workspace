@@ -23,7 +23,7 @@ globs:
 |--------|---------|
 | Services/Navigation/ | Navigation algorithms, path following, velocity control |
 | Services/State/ | Robot state machine (Appccelerate) |
-| SLAM/ | SLAM integration, Localization, ScanMapping services (47 files) |
+| SLAM/ | SLAM integration, Localization, ScanMapping services (~50 files) |
 | Hubs/ | SignalR hubs — 13 hub classes (DeviceHub, MotionHub, SLAMHub, NavigationMonitorHub...) |
 | Drivers/ | Hardware driver initialization and management |
 | Motion/ | Kinematics, differential drive, trajectory |
@@ -46,17 +46,17 @@ globs:
 | SICK Safety | Sick.SafetyScanners | SICK safety scanner integration |
 
 ## Key interfaces to know
-- `IVelocityController` — all velocity commands go through this
-- `RobotStateMachine` (class, not interface) — state transitions (Idle, Moving, Error, E-Stop...)
+- `RobotStateMachine` (class, not interface) — 24 states via `RobotStateType` enum. Root: System, Auto, Manual, Service, Remote_Override, Stop, Fault. Auto sub-states: Idle, Executing (Moving, ACT), Paused, Canceling, Recovering. ACT sub-states: Docking, Docked, Charging, Undocking, Loading, Unloading, TechAction
 - `IDeviceProvider` — device discovery and lifecycle
-- `ISafety` — safety chain (handles E-Stop, no separate IEmergencyStop interface)
+- `ISafety` — speed limits and safety stop flag (IsSafetyStop, MinSpeed, UpdateSpeed)
 - `ICiA402Servo` — CiA402 drive control
-- `ISLAMService` / `ILocalizationService` / `IScanMappingService` — SLAM domain interfaces
+- `ISLAMService` — unified SLAM interface (localization + scan mapping + rerender, NO separate ILocalizationService/IScanMappingService)
+- Note: `ILocalization` (Interfaces/) is a high-level pose data abstraction, NOT the same as `ISLAMService` (SLAM/) which handles SLAM-specific operations. `INavigation` has its own `NavigationState` enum (None, Idle, Initializing, Waiting, Moving, Rotating, etc.) — separate from RobotStateMachine states
 
 ## Device pattern
 ```
 DeviceBase (abstract)
-  -> DeviceAttribute (metadata: name, type, hub)
+  -> DeviceAttribute (metadata: DeviceType, Brand, DriverName, Version, Description)
   -> IDeviceProvider (DI registration)
   -> SignalR Hub (real-time UI updates)
   -> Blazor Component (UI rendering)

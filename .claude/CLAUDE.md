@@ -25,7 +25,7 @@ Components (5 UI) ─┘        ↕
 | RobotApp | RobotApp, RobotApp.Client, RobotApp.Script, RobotApp.Script.Shared, RobotApp.Shared | Robot-side app (Ubuntu 22.04, SQLite) |
 | FleetManager | FleetManager, FleetManager.Client, FleetManager.Script, FleetManager.Script.Shared, FleetManager.Shared | Server-side app (Docker, SQL Server, Blazor) |
 | Communication | CANOpen, CANOpen.CiA402, CartographerSharp, CeresSharp, Olei.LidarSensor, Sick.ColaB, Sick.SafetyScanners | Hardware drivers (under RobotApp/) |
-| Tests | GlobalPathPlanner.Test, MapManager.Test, RobotManager.Test, ScriptEngine.Test, StorageManager.Test, CeresSharp.Test | NUnit test projects |
+| Tests | GlobalPathPlanner.Test (xUnit), MapManager.Test (NUnit), NavigationTune.Test (xUnit), RobotManager.Test (NUnit), ScriptEngine.Test (NUnit), StorageManager.Test (xUnit), CeresSharp.Test (NUnit), RobotApp.Tests (xUnit) | Mixed NUnit + xUnit |
 
 ## Domain map
 
@@ -60,7 +60,7 @@ Auto-loaded rule: `.claude/rules/safety-critical.md`
 - **Async:** `*Async` suffix bắt buộc cho I/O methods
 - **Namespace:** `RobotNet10.{ProjectName}[.{SubNamespace}]`
 - **Logging:** NLog, structured logging (KHÔNG string interpolation trong log calls)
-- **Testing:** NUnit + Moq + EF InMemory
+- **Testing:** NUnit + xUnit (mixed per project) + Moq + EF InMemory
 - **VDA 5050:** Models dùng `[JsonPropertyName]` match spec exactly
 
 ## Build & run
@@ -113,7 +113,7 @@ docker compose -f srcs/RobotNet10/FleetManager/docker-compose.yml up
 ## Khi cần tham khảo thêm
 
 - Hardware manual: MBDV-2X-520AC-F02 dual-axis servo driver
-- Motor: MSD180-10-075-20GSL (750W, gear ratio 10:1)
+- Motor: MSD180-10-075-20GSL-N (750W, gear ratio 10:1, no brake)
 - Control: CSV mode (Cyclic Synchronous Velocity) qua CANOpen
 - IPC cycle: 50 Hz
 - EDS file: `eds/CANOPEN_EDS_MBDV_Servo_DulAxes_V1.0.eds`

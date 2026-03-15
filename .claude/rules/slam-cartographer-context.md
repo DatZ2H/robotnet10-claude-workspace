@@ -17,10 +17,9 @@ globs:
 ```
 CartographerSharp (lib, 162 files)  -- SLAM core, Google Cartographer port
     └── CeresSharp (lib, 53 files)  -- Ceres solver wrapper, native interop
-         └── RobotApp/SLAM/ (47 files) -- Integration layer
+         └── RobotApp/SLAM/ (~50 files) -- Integration layer
               ├── CartographerService  -- State machine: Idle -> Initializing -> Ready -> Localizing/ScanMapping
-              ├── LocalizationService  -- ISLAMService, ILocalizationService
-              └── ScanMappingService   -- IScanMappingService
+              └── ISLAMService (unified interface) -- Localization + ScanMapping + Rerender
 ```
 
 ## Key interfaces
@@ -29,15 +28,21 @@ CartographerSharp (lib, 162 files)  -- SLAM core, Google Cartographer port
 |-----------|---------|
 | `IMapBuilder` | Map construction from sensor data |
 | `ITrajectoryBuilder` | Trajectory estimation and management |
-| `ISLAMService` | High-level SLAM orchestration |
-| `ILocalizationService` | Pose estimation from existing map |
-| `IScanMappingService` | Build new map from LiDAR scans |
+| `ISLAMService` | **Unified** SLAM interface — localization, scan mapping, rerender |
+
+> [!IMPORTANT]
+> `ISLAMService` is the ONLY high-level SLAM interface (defined in `SLAM/ISLAMService.cs`).
+> It contains: StartLocalization, StopLocalization, SetInitialPose, ForceInitialPose,
+> StartScanMapping, SaveScanMap, RerenderSlamAsync.
+> There is NO separate `ILocalizationService` or `IScanMappingService` interface.
 
 ## CartographerService state machine
 
 ```
-Idle -> Initializing -> Ready -> Localizing (using existing map)
-                            └-> ScanMapping (building new map)
+Idle -> Initializing -> Ready -> InitializingLocalizing -> Localizing (using existing map)
+                            |                         └-> Relocalizing (re-init pose)
+                            └-> ScanMapping (building new map) -> SavingMap
+Any state -> Error (on failure)
 ```
 
 ## Sensor pipeline
