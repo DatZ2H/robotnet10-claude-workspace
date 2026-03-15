@@ -1,87 +1,136 @@
 # Quick Start — 5 phut Setup
 
-Hướng dẫn setup nhanh `robotnet10-ai-context` cho developer mới.
+Huong dan setup nhanh `robotnet10-claude-workspace` cho developer moi.
 
 ---
 
-## Yêu cầu
+## Yeu cau
 
 - Git
 - Claude Code CLI (`npm install -g @anthropic-ai/claude-code`)
-- RobotNet10 workspace (clone từ GitLab nội bộ)
+- RobotNet10 workspace (clone tu GitLab noi bo)
+- **Python 3.x** (can cho safety hooks — `python3` tren Linux, `python` tren Windows)
 
 ## Setup
 
-### Option A: Symlink (khuyến nghị — Linux/macOS)
+### Option A: Full install — Symlink (khuyen nghi — Linux/macOS)
 
 ```bash
 # 1. Clone context repo
-git clone <robotnet10-ai-context-url> ~/robotnet10-ai-context
+git clone <robotnet10-claude-workspace-url> ~/robotnet10-claude-workspace
 
-# 2. Chạy setup script
-cd ~/robotnet10-ai-context
+# 2. Chay setup script
+cd ~/robotnet10-claude-workspace
 ./setup.sh /path/to/robotnet10
 
-# 3. Mở Claude Code tại RobotNet10
+# 3. Mo Claude Code tai RobotNet10
 cd /path/to/robotnet10
 claude
 ```
 
-### Option B: Symlink (Windows PowerShell)
+### Option B: Full install — Symlink (Windows PowerShell)
 
 ```powershell
 # 1. Clone context repo
-git clone <robotnet10-ai-context-url> $HOME\robotnet10-ai-context
+git clone <robotnet10-claude-workspace-url> $HOME\robotnet10-claude-workspace
 
-# 2. Chạy setup script (Run as Administrator)
-cd $HOME\robotnet10-ai-context
+# 2. Chay setup script (Run as Administrator)
+cd $HOME\robotnet10-claude-workspace
 .\setup.ps1 -RobotNet10Path "C:\path\to\robotnet10"
 
-# 3. Mở Claude Code tại RobotNet10
+# 3. Mo Claude Code tai RobotNet10
 cd C:\path\to\robotnet10
 claude
 ```
 
-### Option C: Manual copy
+### Option C: Rules-only (khong hooks, khong commands)
 
 ```bash
-# Copy .claude/ vào RobotNet10 root
-cp -r ~/robotnet10-ai-context/.claude/ /path/to/robotnet10/
+./setup.sh --rules-only /path/to/robotnet10
+# Windows:
+.\setup.ps1 -RobotNet10Path "C:\path\to\robotnet10" -RulesOnly
 ```
 
-## Xác nhận setup thành công
+### Option D: Full nhung bo hooks
 
-Khi mở Claude Code tại RobotNet10 directory, bạn sẽ thấy:
+```bash
+./setup.sh --no-hooks /path/to/robotnet10
+# Windows:
+.\setup.ps1 -RobotNet10Path "C:\path\to\robotnet10" -NoHooks
+```
+
+### Option E: Manual copy
+
+```bash
+# Copy .claude/ vao RobotNet10 root
+cp -r ~/robotnet10-claude-workspace/.claude/ /path/to/robotnet10/
+```
+
+## Xac nhan setup thanh cong
+
+Khi mo Claude Code tai RobotNet10 directory, ban se thay:
 - SessionStart hook in ra: `RobotNet10 | <branch> | <N> files modified`
-- Claude tự động đọc `.claude/CLAUDE.md`
-- Gõ `/onboard` → Claude hỏi bạn muốn làm việc với domain nào
+- Claude tu dong doc `.claude/CLAUDE.md`
+- Go `/onboard` → Claude hoi ban muon lam viec voi domain nao
 
-## Sử dụng hàng ngày
+## Su dung hang ngay
 
-| Lệnh | Mục đích |
+### Commands
+
+| Lenh | Muc dich |
 |------|---------|
-| `/onboard` | Onboarding tương tác — chọn domain để bắt đầu |
-| `/explain-domain SLAM` | Trace implementation của một domain cụ thể |
+| `/onboard` | Onboarding tuong tac — chon domain de bat dau |
+| `/explain-domain SLAM` | Trace implementation cua mot domain cu the |
+| `/safety-review` | Review safety-critical changes truoc commit |
+| `/build all` | Build toan bo solution |
+| `/build robotapp` | Build chi RobotApp |
+| `/test-domain SLAM` | Chay tests cho SLAM domain |
+| `/trace-vda5050 Order` | Trace VDA 5050 Order message flow |
+| `/check-shared` | Kiem tra Shared/ backward compatibility |
+| `/device-scaffold MyDevice` | Scaffold device moi theo pattern chuan |
 
-## Rules tự động
+### Rules tu dong
 
-Khi bạn edit files, Claude tự động load rules phù hợp:
+Khi ban edit files, Claude tu dong load rules phu hop:
 
 | Edit files trong... | Rule auto-load |
 |--------------------|---------------|
-| `CartographerSharp/`, `CeresSharp/`, `SLAM/` | `slam-cartographer-context.md` |
+| `CartographerSharp/`, `CeresSharp/`, `SLAM/`, `Localization/` | `slam-cartographer-context.md` |
 | `RobotApp/` | `robotapp-context.md` |
 | `FleetManager/` | `fleetmanager-context.md` |
-| `Motion/`, `CANOpen/`, `CiA402/` | `safety-critical.md` |
+| `Motion/`, `CANOpen/`, `CiA402/`, `Services/Navigation/`, `Services/State/` | `safety-critical.md` |
 | `Shared/` | `shared-contracts.md` |
+| `*.Client/`, `Components/` | `blazor-ui.md` |
+| `MqttConnection/`, `RobotConnections/` | `mqtt-communication.md` |
 | Test projects | `test-standards.md` |
 
-## Cập nhật context
+### Safety Hooks
+
+Setup bao gom safety hooks tu dong:
+
+- **PreToolUse**: Canh bao khi edit files trong safety-critical zones (Motion/, CANOpen/, CiA402/)
+- **PostToolUse**: Nhac build solution khi edit Shared/ contracts
+- **Deny rules**: Chan `rm -rf` va `dotnet ef database update`
+
+Neu khong muon hooks, dung `--no-hooks` khi setup.
+
+## Cap nhat context
 
 ```bash
-cd ~/robotnet10-ai-context
+cd ~/robotnet10-claude-workspace
 git pull
 ```
 
-Nếu dùng symlink, RobotNet10 workspace tự động nhận context mới.
-Nếu dùng copy, cần copy lại `.claude/`.
+Neu dung symlink, RobotNet10 workspace tu dong nhan context moi.
+Neu dung copy, can chay lai setup script.
+
+Xem [UPDATING.md](UPDATING.md) cho cac tinh huong nang cao (conflict resolution, contribute nguoc lai).
+
+## Troubleshooting
+
+| Van de | Giai phap |
+|--------|-----------|
+| Hook bao loi "python3 not found" | Cai Python 3.x hoac dung `--no-hooks` |
+| Symlink khong tao duoc (Windows) | Chay PowerShell as Administrator, hoac script se fallback sang junction/copy |
+| SessionStart khong hien status | Kiem tra `.claude/settings.json` co ton tai tai RobotNet10 workspace |
+| Rules khong auto-load | Kiem tra glob patterns match voi file path ban dang edit |
