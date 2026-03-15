@@ -1,146 +1,318 @@
 # RobotNet10 Claude Workspace
 
-Claude Code context repository cho dự án RobotNet10 — AMR Fleet Management System (Phenikaa-X Robotics).
+Gói context cho [Claude Code](https://docs.anthropic.com/en/docs/claude-code) — giúp AI hiểu RobotNet10 codebase (43 projects C# .NET 10, AMR fleet management, Phenikaa-X Robotics) mà không cần giải thích lại từ đầu mỗi session.
 
-Repo này chứa **domain knowledge, rules, hooks, và commands** để AI agents làm việc hiệu quả với RobotNet10 codebase mà không cần mô tả lại context từ đầu.
+> [!IMPORTANT]
+> Repo này **không chứa source code**. Nó chứa tài liệu, rules, hooks, và commands mà bạn gắn vào RobotNet10 workspace.
 
-## Repo này dùng để làm gì?
+## Cách hoạt động
 
-RobotNet10 là hệ thống phần mềm phức tạp (43 projects, ~1,300 files C#) bao gồm nhiều domain:
-SLAM, Navigation, Motor Control, Fleet Management, VDA 5050, Script Engine, Map Editor...
-
-Mỗi khi developer mới (hoặc AI agent) bắt đầu làm việc với một domain, cần hiểu:
-- Kiến trúc tổng thể và vị trí domain trong hệ thống
-- Safety constraints (motor control, SLAM có thể gây va chạm nếu sai)
-- Coding patterns và conventions riêng của project
-- Cross-domain dependencies (Shared contracts ảnh hưởng cả RobotApp và FleetManager)
-
-Repo này **đóng gói tất cả context** đó để setup trong 5 phút.
-
-## Nội dung
+Claude Code tự động đọc folder `.claude/` tại root của workspace. Repo này cung cấp folder `.claude/` đã cấu hình sẵn cho RobotNet10:
 
 ```
-robotnet10-claude-workspace/
-├── README.md                ← File này
-├── QUICKSTART.md            ← 5 phút setup
-├── CHANGELOG.md             ← Release notes
-├── UPDATING.md              ← Hướng dẫn sync/update
-├── setup.sh / setup.ps1     ← Script tự động setup
-│
-├── .claude/                 ← Claude Code infrastructure
-│   ├── CLAUDE.md            ← Project context (auto-load)
-│   ├── settings.json        ← Permissions, hooks, deny rules
-│   ├── commands/            ← 8 workflow commands
-│   ├── rules/               ← 8 auto-load rules theo domain
-│   └── memory/              ← Memory system (user-specific, gitignored)
-│
-└── docs/                    ← Domain knowledge (72 files)
-    ├── ai-guide/            ← AI agent orientation
-    ├── DOCUMENTATION_MAP.md
-    ├── architecture/
-    ├── CartographerSharp/   ← SLAM docs + research
-    ├── Localization/
-    ├── development/
-    ├── robotapp/
-    ├── fleetmanager/
-    ├── vda5050/
-    ├── ScriptEngine/
-    ├── MapEditor/
-    └── RobotApp-TunningNav/
+RobotNet10 workspace (source code)
+├── srcs/RobotNet10/...
+├── ...
+└── .claude/              ← Bạn đặt folder này vào đây
+    ├── CLAUDE.md         ← Claude đọc file này MỌI session (project context)
+    ├── settings.json     ← Permissions, safety hooks, deny rules
+    ├── rules/            ← Auto-load khi edit file khớp pattern
+    └── commands/         ← Gõ /tên-command để dùng
 ```
 
-## Quick Start
+**Khi nào Claude load gì:**
 
-Xem [QUICKSTART.md](QUICKSTART.md) cho hướng dẫn đầy đủ.
+| Thành phần | Khi nào load | Ví dụ |
+|------------|-------------|-------|
+| `CLAUDE.md` | **Mọi session** — luôn luôn | Claude biết kiến trúc, domain map, build commands |
+| `rules/*.md` | **Tự động** khi edit file khớp glob pattern | Edit `Motion/Kinematics.cs` → load `safety-critical.md` |
+| `commands/*.md` | **Khi bạn gõ** `/tên-command` | Gõ `/safety-review` → Claude chạy safety checklist |
+| `settings.json` | **Mọi session** — hooks chạy tự động | Cảnh báo khi edit safety-critical files |
+| `docs/` | **Không tự load** — Claude tra cứu khi cần | `/explain-domain SLAM` → Claude đọc docs/CartographerSharp/ |
+
+---
+
+## Cài đặt
+
+### Option A: Script tự động (cài tất cả)
 
 ```bash
-# 1. Clone
-git clone <repo-url> ~/robotnet10-claude-workspace
-
-# 2. Setup (tạo symlink .claude/ vào RobotNet10 workspace)
+git clone https://github.com/DatZ2H/robotnet10-claude-workspace.git ~/robotnet10-claude-workspace
 cd ~/robotnet10-claude-workspace
-./setup.sh /path/to/robotnet10   # Linux/macOS
-# hoặc
-.\setup.ps1 -RobotNet10Path "C:\path\to\robotnet10"  # Windows (Admin)
+./setup.sh /path/to/robotnet10        # Linux/macOS
+.\setup.ps1 -RobotNet10Path "C:\path\to\robotnet10"  # Windows (cần Admin cho symlink)
+```
 
-# 3. Sử dụng
-cd /path/to/robotnet10
+Script tạo symlink `.claude/` → context repo. Thay đổi trong context repo tự đồng bộ.
+
+Các option của script:
+
+| Flag | Tác dụng |
+|------|---------|
+| *(không flag)* | Cài tất cả qua symlink |
+| `--rules-only` | Chỉ copy `CLAUDE.md` + `rules/` (không hooks, không commands) |
+| `--no-hooks` | Cài tất cả nhưng bỏ hooks trong settings.json |
+
+---
+
+### Option B: Cài đặt thủ công (chọn từng thành phần)
+
+Nếu bạn muốn kiểm soát chính xác những gì được cài, làm theo các bước dưới đây.
+
+**Yêu cầu:** Đã clone repo này về máy.
+
+```bash
+git clone https://github.com/DatZ2H/robotnet10-claude-workspace.git ~/robotnet10-claude-workspace
+```
+
+Trong các bước dưới, `$WORKSPACE` là đường dẫn tới RobotNet10 workspace của bạn.
+
+#### Bước 1 (bắt buộc): Tạo folder `.claude/` và copy `CLAUDE.md`
+
+Đây là file duy nhất **bắt buộc**. Không có nó, Claude không hiểu project.
+
+```bash
+mkdir -p $WORKSPACE/.claude
+cp ~/robotnet10-claude-workspace/.claude/CLAUDE.md $WORKSPACE/.claude/
+```
+
+Sau bước này bạn đã có thể dùng Claude Code với RobotNet10. Các bước tiếp theo là tuỳ chọn.
+
+#### Bước 2 (khuyên dùng): Copy rules theo domain bạn làm việc
+
+Rules tự động load khi bạn edit file khớp pattern. Chọn rules phù hợp với domain của bạn:
+
+```bash
+mkdir -p $WORKSPACE/.claude/rules
+```
+
+**Rules nền tảng** — nên copy bất kể bạn làm domain nào:
+
+```bash
+# Safety — bảo vệ motor control, SLAM (tránh va chạm vật lý)
+cp ~/robotnet10-claude-workspace/.claude/rules/safety-critical.md $WORKSPACE/.claude/rules/
+
+# Shared contracts — cảnh báo khi edit code ảnh hưởng cả RobotApp + FleetManager
+cp ~/robotnet10-claude-workspace/.claude/rules/shared-contracts.md $WORKSPACE/.claude/rules/
+
+# Test standards — NUnit + xUnit conventions (cần khi viết tests)
+cp ~/robotnet10-claude-workspace/.claude/rules/test-standards.md $WORKSPACE/.claude/rules/
+```
+
+**Rules theo domain** — chỉ copy cái bạn cần:
+
+```bash
+# Nếu làm RobotApp (robot-side, Ubuntu, SignalR hubs, device drivers)
+cp ~/robotnet10-claude-workspace/.claude/rules/robotapp-context.md $WORKSPACE/.claude/rules/
+
+# Nếu làm FleetManager (server-side, Docker, SQL Server, VDA 5050)
+cp ~/robotnet10-claude-workspace/.claude/rules/fleetmanager-context.md $WORKSPACE/.claude/rules/
+
+# Nếu làm SLAM / Localization (CartographerSharp, CeresSharp)
+cp ~/robotnet10-claude-workspace/.claude/rules/slam-cartographer-context.md $WORKSPACE/.claude/rules/
+
+# Nếu làm Blazor UI (Components, Client projects)
+cp ~/robotnet10-claude-workspace/.claude/rules/blazor-ui.md $WORKSPACE/.claude/rules/
+
+# Nếu làm MQTT / VDA 5050 communication
+cp ~/robotnet10-claude-workspace/.claude/rules/mqtt-communication.md $WORKSPACE/.claude/rules/
+```
+
+Hoặc copy tất cả nếu không muốn chọn:
+
+```bash
+cp ~/robotnet10-claude-workspace/.claude/rules/*.md $WORKSPACE/.claude/rules/
+```
+
+#### Bước 3 (tuỳ chọn): Copy commands
+
+Commands là shortcuts gõ trong Claude Code. Chọn cái bạn dùng:
+
+```bash
+mkdir -p $WORKSPACE/.claude/commands
+```
+
+```bash
+# Onboarding — Claude hỏi bạn muốn làm domain nào, rồi giải thích
+cp ~/robotnet10-claude-workspace/.claude/commands/onboard.md $WORKSPACE/.claude/commands/
+
+# Safety review — scan git diff, kiểm tra safety checklist trước commit
+cp ~/robotnet10-claude-workspace/.claude/commands/safety-review.md $WORKSPACE/.claude/commands/
+
+# Build shortcut — dotnet build không cần nhớ path
+cp ~/robotnet10-claude-workspace/.claude/commands/build.md $WORKSPACE/.claude/commands/
+
+# Test theo domain — map domain name → đúng test project + framework
+cp ~/robotnet10-claude-workspace/.claude/commands/test-domain.md $WORKSPACE/.claude/commands/
+
+# Giải thích domain — trace concept qua source code
+cp ~/robotnet10-claude-workspace/.claude/commands/explain-domain.md $WORKSPACE/.claude/commands/
+
+# Trace VDA 5050 message flow (Order/State/InstantAction)
+cp ~/robotnet10-claude-workspace/.claude/commands/trace-vda5050.md $WORKSPACE/.claude/commands/
+
+# Kiểm tra backward compatibility khi edit Shared/
+cp ~/robotnet10-claude-workspace/.claude/commands/check-shared.md $WORKSPACE/.claude/commands/
+
+# Scaffold device mới theo DeviceBase pattern
+cp ~/robotnet10-claude-workspace/.claude/commands/device-scaffold.md $WORKSPACE/.claude/commands/
+```
+
+Hoặc copy tất cả:
+
+```bash
+cp ~/robotnet10-claude-workspace/.claude/commands/*.md $WORKSPACE/.claude/commands/
+```
+
+#### Bước 4 (tuỳ chọn): Copy settings.json (hooks + permissions)
+
+File này chứa safety hooks (cảnh báo khi edit motor control code) và deny rules (chặn `rm -rf`). **Cần Python 3.x** để hooks hoạt động.
+
+```bash
+cp ~/robotnet10-claude-workspace/.claude/settings.json $WORKSPACE/.claude/
+```
+
+Nội dung settings.json:
+
+| Thành phần | Tác dụng |
+|------------|---------|
+| `permissions.allow` | Tự động cho phép `dotnet build/test/run`, `git`, `docker` |
+| `permissions.deny` | Chặn `rm -rf` và `dotnet ef database update` |
+| `hooks.SessionStart` | Hiển thị branch + số file modified khi mở session |
+| `hooks.PreToolUse` | Cảnh báo khi edit files trong Motion/, CANOpen/, CiA402/ |
+| `hooks.PostToolUse` | Nhắc build solution khi edit Shared/ contracts |
+
+Nếu bạn không muốn hooks nhưng muốn permissions, tạo file thủ công:
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet build:*)",
+      "Bash(dotnet test:*)",
+      "Bash(dotnet run:*)",
+      "Bash(git:*)"
+    ],
+    "deny": [
+      "Bash(rm -rf:*)"
+    ]
+  }
+}
+```
+
+#### Bước 5 (tuỳ chọn): Copy docs
+
+`docs/` không tự load — Claude chỉ đọc khi bạn hỏi hoặc dùng `/explain-domain`. Copy theo domain bạn quan tâm:
+
+```bash
+# Copy docs vào workspace (hoặc để tại context repo, Claude tìm được nếu dùng symlink)
+mkdir -p $WORKSPACE/docs
+
+# SLAM domain (15 files — thuật toán, tuning, Ceres solver)
+cp -r ~/robotnet10-claude-workspace/docs/CartographerSharp/ $WORKSPACE/docs/
+cp -r ~/robotnet10-claude-workspace/docs/Localization/ $WORKSPACE/docs/
+
+# FleetManager (9 files — traffic control, robot connections, VDA 5050)
+cp -r ~/robotnet10-claude-workspace/docs/fleetmanager/ $WORKSPACE/docs/
+
+# Map Editor (12 files — VDMA LIF, path finding, SVG canvas)
+cp -r ~/robotnet10-claude-workspace/docs/MapEditor/ $WORKSPACE/docs/
+
+# Script Engine (13 files — compilation, missions, security)
+cp -r ~/robotnet10-claude-workspace/docs/ScriptEngine/ $WORKSPACE/docs/
+
+# Navigation tuning (6 files)
+cp -r ~/robotnet10-claude-workspace/docs/RobotApp-TunningNav/ $WORKSPACE/docs/
+
+# VDA 5050 protocol
+cp -r ~/robotnet10-claude-workspace/docs/vda5050/ $WORKSPACE/docs/
+
+# Architecture + Development guides
+cp -r ~/robotnet10-claude-workspace/docs/architecture/ $WORKSPACE/docs/
+cp -r ~/robotnet10-claude-workspace/docs/development/ $WORKSPACE/docs/
+```
+
+---
+
+### Kiểm tra cài đặt
+
+```bash
+cd $WORKSPACE
 claude
 ```
 
-## Features
+Nếu cài đúng, bạn sẽ thấy:
+- Claude hiểu khi bạn hỏi về RobotNet10 (nhờ `CLAUDE.md`)
+- Nếu có settings.json: dòng `RobotNet10 | main | 0 files modified` khi mở session
+- Nếu có commands: gõ `/onboard` → Claude hỏi bạn muốn làm domain nào
 
-### Rules (auto-load theo domain)
+---
 
-Khi edit files trong RobotNet10, Claude tự động load rules phù hợp:
+## Chọn gì cho domain của bạn?
 
-| Rule | Trigger (file patterns) | Mục đích |
-|------|------------------------|---------|
-| `safety-critical.md` | `Motion/`, `CANOpen/`, `CiA402/`, `Services/Navigation/`, `Services/State/` | ⚠️ Motor control safety |
-| `robotapp-context.md` | `RobotApp/**` | RobotApp architecture |
-| `fleetmanager-context.md` | `FleetManager/**` | FleetManager architecture |
-| `slam-cartographer-context.md` | `CartographerSharp/`, `CeresSharp/`, `SLAM/`, `Localization/` | SLAM domain (~262 files) |
-| `shared-contracts.md` | `Shared/**` | Cross-app impact warnings |
-| `test-standards.md` | `Tests/**`, `*Tests*/**` | NUnit + xUnit testing standards |
-| `blazor-ui.md` | `*.Client/**`, `Components/**` | Blazor UI patterns |
-| `mqtt-communication.md` | `MqttConnection/**`, `RobotConnections/**` | MQTT/VDA 5050 patterns |
+| Bạn làm... | Bước 1 | Bước 2 (rules) | Bước 3 (commands) | Bước 4 | Bước 5 (docs) |
+|------------|--------|----------------|-------------------|--------|---------------|
+| **RobotApp chung** | ✅ | safety + shared + test + robotapp | build, test-domain, safety-review | ✅ | robotapp/, development/ |
+| **Motor/Navigation** | ✅ | safety + shared + robotapp | build, safety-review | ✅ | RobotApp-TunningNav/ |
+| **SLAM** | ✅ | safety + shared + robotapp + slam | build, test-domain, explain-domain | ✅ | CartographerSharp/, Localization/ |
+| **FleetManager** | ✅ | safety + shared + test + fleetmanager + mqtt | build, test-domain, trace-vda5050 | ✅ | fleetmanager/, vda5050/ |
+| **Blazor UI** | ✅ | shared + test + blazor-ui + (robotapp hoặc fleetmanager) | build | Tuỳ | — |
+| **Script Engine** | ✅ | shared + test | build, test-domain | Tuỳ | ScriptEngine/ |
+| **Tất cả / Team Lead** | ✅ | Tất cả rules | Tất cả commands | ✅ | Tất cả docs |
 
-### Commands (8 workflow commands)
+---
 
-| Command | Mô tả |
-|---------|-------|
-| `/onboard` | Onboarding tương tác — chọn domain để bắt đầu |
-| `/explain-domain` | Trace implementation của domain cụ thể |
-| `/safety-review` | Review safety-critical changes trước commit |
-| `/build [target]` | Build shortcut — all, robotapp, fleet, hoặc project name |
-| `/test-domain [domain]` | Test theo domain — không cần nhớ path + framework |
-| `/trace-vda5050 [message]` | Trace VDA 5050 message flow (Order/State/InstantAction) |
-| `/check-shared` | Kiểm tra backward compatibility của Shared/ changes |
-| `/device-scaffold [name]` | Scaffold device mới theo pattern chuẩn |
+## Cập nhật
 
-### Safety Hooks
+Nếu dùng symlink (Option A): `git pull` trong context repo → workspace tự đồng bộ.
 
-- **PreToolUse** (Edit/Write): Cảnh báo khi edit files trong safety-critical zones (Motion/, CANOpen/, CiA402/)
-- **PostToolUse** (Edit/Write): Nhắc build solution khi edit Shared/ contracts
-- **Deny rules**: Chặn `rm -rf` và `dotnet ef database update` (destructive commands)
-- **SessionStart**: Hiển thị branch + file status khi bắt đầu session
+Nếu dùng copy thủ công (Option B): chạy lại các bước copy sau khi `git pull`.
 
-### Memory System
+Xem [UPDATING.md](UPDATING.md) cho các tình huống nâng cao.
 
-Claude Code tự động học và lưu context của bạn qua các session. Memory user-specific (vai trò, preferences) được gitignored — mỗi developer có memory riêng.
+## Cấu trúc repo
 
-## Selective Adoption
-
-Không bắt buộc cài tất cả. Chọn thành phần phù hợp:
-
-| Thành phần | Mô tả | Có thể bỏ? | Hậu quả nếu bỏ |
-|------------|-------|-------------|-----------------|
-| `.claude/CLAUDE.md` | Project context | **Không** — core | Claude không hiểu project |
-| `.claude/rules/safety-critical.md` | Safety warnings | **Không** — critical | Mất bảo vệ motor control |
-| `.claude/rules/robotapp-context.md` | RobotApp context | Có — nếu chỉ làm FleetManager | Thiếu context RobotApp |
-| `.claude/rules/fleetmanager-context.md` | FleetManager context | Có — nếu chỉ làm RobotApp | Thiếu context FM |
-| `.claude/rules/slam-*.md` | SLAM domain | Có — nếu không làm SLAM | Thiếu SLAM guidance |
-| `.claude/rules/blazor-ui.md` | Blazor patterns | Có | Thiếu UI guidance |
-| `.claude/rules/mqtt-*.md` | MQTT patterns | Có | Thiếu MQTT guidance |
-| `.claude/rules/shared-contracts.md` | Cross-app warnings | **Không** — nếu edit Shared/ | Thiếu break warnings |
-| `.claude/rules/test-standards.md` | Test conventions | **Không** — nếu viết tests | Sai framework/style |
-| `.claude/settings.json` (hooks) | Safety hooks | **Khuyên nghị** | Mất runtime protection |
-| `.claude/settings.json` (deny) | Destructive cmd block | **Khuyên nghị** | Mất guardrails |
-| `.claude/commands/*` | 8 workflow commands | Có — chọn cái cần | Phải nhớ commands thủ công |
-| `docs/` | 72 domain docs | Có — tham khảo | Claude ít context khi cần tra cứu |
-
-Setup selective:
-
-```bash
-# Chỉ cài rules + CLAUDE.md (không hooks, không commands)
-./setup.sh --rules-only /path/to/robotnet10
-
-# Cài đầy đủ nhưng bỏ hooks
-./setup.sh --no-hooks /path/to/robotnet10
-
-# Windows
-.\setup.ps1 -RobotNet10Path "C:\path\to\robotnet10" -RulesOnly
-.\setup.ps1 -RobotNet10Path "C:\path\to\robotnet10" -NoHooks
+```
+robotnet10-claude-workspace/
+├── .claude/
+│   ├── CLAUDE.md              ← Project context (kiến trúc, domain map, patterns)
+│   ├── settings.json          ← Hooks + permissions + deny rules
+│   ├── rules/                 ← 8 auto-load rules theo domain
+│   │   ├── safety-critical.md
+│   │   ├── robotapp-context.md
+│   │   ├── fleetmanager-context.md
+│   │   ├── slam-cartographer-context.md
+│   │   ├── shared-contracts.md
+│   │   ├── test-standards.md
+│   │   ├── blazor-ui.md
+│   │   └── mqtt-communication.md
+│   └── commands/              ← 8 workflow commands
+│       ├── onboard.md
+│       ├── safety-review.md
+│       ├── build.md
+│       ├── test-domain.md
+│       ├── explain-domain.md
+│       ├── trace-vda5050.md
+│       ├── check-shared.md
+│       └── device-scaffold.md
+│
+├── docs/                      ← 74 domain knowledge files
+│   ├── CartographerSharp/     ← SLAM (15 files)
+│   ├── fleetmanager/          ← Fleet management (9 files)
+│   ├── ScriptEngine/          ← Scripting (13 files)
+│   ├── MapEditor/             ← Map editor (12 files)
+│   ├── RobotApp-TunningNav/   ← Nav tuning (6 files)
+│   ├── vda5050/               ← VDA 5050 protocol
+│   ├── architecture/          ← System architecture
+│   ├── development/           ← Developer guides
+│   ├── robotapp/              ← RobotApp docs
+│   ├── Localization/          ← Localization service
+│   └── ai-guide/              ← AI agent orientation
+│
+├── setup.sh / setup.ps1       ← Script tự động
+├── QUICKSTART.md              ← Hướng dẫn setup nhanh
+├── UPDATING.md                ← Hướng dẫn sync/update
+└── CHANGELOG.md               ← Release notes
 ```
 
 ## RobotNet10 Overview
@@ -159,10 +331,6 @@ Shared (5 libs) → Commons (10 libs) + Components (5 UI) → Apps (RobotApp + F
                                                               ↕ Communication (7 drivers)
 ```
 
-## Cập nhật
-
-Xem [UPDATING.md](UPDATING.md) cho hướng dẫn đầy đủ về sync workflow.
-
 ## Đóng góp
 
 1. Fork repo
@@ -172,11 +340,6 @@ Xem [UPDATING.md](UPDATING.md) cho hướng dẫn đầy đủ về sync workflo
 
 > [!IMPORTANT]
 > Repo này chỉ chứa **docs và AI infrastructure** — KHÔNG chứa source code, EDS files, hay credentials.
-
-## Liên quan
-
-- **RobotNet10 codebase**: GitLab nội bộ (Phenikaa-X)
-- **AMR-T800 Hub**: Orchestration hub cho dự án AMR T800
 
 ---
 
