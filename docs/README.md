@@ -15,7 +15,7 @@ Tài liệu về kiến trúc hệ thống, các thành phần và cách chúng 
 - Communication patterns
 - Technology stack details
 
-### 1.5 [ScriptEngine](scriptengine/README.md)
+### 1.5 [ScriptEngine](ScriptEngine/README.md)
 Tài liệu về module ScriptEngine - shared library cho scripting.
 
 - Web-based C# scripting with Monaco Editor

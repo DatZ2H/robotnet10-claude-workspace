@@ -1,8 +1,8 @@
 # Changelog
 
-## [1.0.0] — 2026-03-15
+## [0.9.0] — 2026-03-15
 
-First release-ready version of the RobotNet10 Claude Workspace.
+Pre-release version of the RobotNet10 Claude Workspace. Core features complete, minor issues being tracked.
 
 ### Added
 - **8 auto-load rules**: safety-critical, robotapp-context, fleetmanager-context, slam-cartographer-context, shared-contracts, test-standards, blazor-ui, mqtt-communication

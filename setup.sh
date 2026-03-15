@@ -148,16 +148,20 @@ fi
 # --- Restore backup ---
 
 if [ -n "$BACKUP_LOCAL_SETTINGS" ] && [ -f "$BACKUP_LOCAL_SETTINGS" ]; then
-    # For symlink mode, settings.local.json goes into the target workspace
-    # (it's gitignored and user-specific)
     if [ -L "$TARGET_CLAUDE" ]; then
-        # Symlink — put settings.local.json next to the symlink target won't work
-        # Instead, create it inside the resolved .claude/ or at workspace level
-        echo "Note: settings.local.json restored to $TARGET_CLAUDE/settings.local.json"
+        # Symlink mode — writing into the symlink would modify the context repo directory.
+        # settings.local.json is user-specific and should NOT be committed there.
+        echo ""
+        echo "Warning: In symlink mode, settings.local.json cannot be restored automatically"
+        echo "  (it would write into the context repo, not the workspace)."
+        echo "  Your backup is saved at: $BACKUP_LOCAL_SETTINGS"
+        echo "  To restore manually, copy it to your workspace .claude/ after switching to copy mode,"
+        echo "  or add it at workspace level."
+    else
+        cp "$BACKUP_LOCAL_SETTINGS" "$TARGET_CLAUDE/settings.local.json"
+        rm -f "$BACKUP_LOCAL_SETTINGS"
+        echo "Restored settings.local.json from backup"
     fi
-    cp "$BACKUP_LOCAL_SETTINGS" "$TARGET_CLAUDE/settings.local.json"
-    rm -f "$BACKUP_LOCAL_SETTINGS"
-    echo "Restored settings.local.json from backup"
 fi
 
 # --- Verify ---

@@ -137,9 +137,22 @@ with open(r'$settingsPath', 'w') as f:
 # --- Restore backup ---
 
 if ($BackupLocalSettings -and (Test-Path $BackupLocalSettings)) {
-    Copy-Item $BackupLocalSettings (Join-Path $TargetClaude "settings.local.json") -Force
-    Remove-Item $BackupLocalSettings -Force
-    Write-Host "Restored settings.local.json from backup"
+    $targetItem = Get-Item $TargetClaude -Force -ErrorAction SilentlyContinue
+    $isSymlink = $targetItem -and ($targetItem.Attributes -band [System.IO.FileAttributes]::ReparsePoint)
+
+    if ($isSymlink) {
+        # Symlink/junction mode — writing into it would modify the context repo directory.
+        # settings.local.json is user-specific and should NOT be committed there.
+        Write-Host ""
+        Write-Warning "In symlink mode, settings.local.json cannot be restored automatically"
+        Write-Warning "  (it would write into the context repo, not the workspace)."
+        Write-Host "  Your backup is saved at: $BackupLocalSettings"
+        Write-Host "  To restore manually, copy it to your workspace .claude/ after switching to copy mode."
+    } else {
+        Copy-Item $BackupLocalSettings (Join-Path $TargetClaude "settings.local.json") -Force
+        Remove-Item $BackupLocalSettings -Force
+        Write-Host "Restored settings.local.json from backup"
+    }
 }
 
 # --- Verify ---

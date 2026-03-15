@@ -61,7 +61,7 @@ Auto-loaded rule: `.claude/rules/safety-critical.md`
 - **Namespace:** `RobotNet10.{ProjectName}[.{SubNamespace}]`
 - **Logging:** NLog, structured logging (KHÔNG string interpolation trong log calls)
 - **Testing:** NUnit + xUnit (mixed per project) + Moq + EF InMemory
-- **VDA 5050:** Models dùng `[JsonPropertyName]` match spec exactly
+- **VDA 5050:** Models dùng `[JsonPropertyName]` match spec exactly — class names có suffix `Msg` (`OrderMsg`, `StateMsg`), error type là `MessageResult<T>`
 
 ## Build & run
 
@@ -96,12 +96,12 @@ docker compose -f srcs/RobotNet10/FleetManager/docker-compose.yml up
 
 | Rule | Trigger (globs) |
 |------|----------------|
-| safety-critical.md | srcs/**/CANOpen/**, CiA402/**, Motion/**, Services/Navigation/**, Services/State/** |
+| safety-critical.md | srcs/**/CANOpen/**, CiA402/**, Motion/**, Services/Navigation/**, Services/State/**, CartographerSharp/**, CeresSharp/**, SLAM/**, Localization/**, **/ISafety.cs, **/ICiA402Servo.cs |
 | robotapp-context.md | srcs/**/RobotApp/** |
 | fleetmanager-context.md | srcs/**/FleetManager/** |
 | slam-cartographer-context.md | srcs/**/CartographerSharp/**, CeresSharp/**, SLAM/**, Localization/** |
 | shared-contracts.md | srcs/**/Shared/** |
-| test-standards.md | srcs/**/*.Test/**, *Tests*/** |
+| test-standards.md | srcs/**/*.Test/**, srcs/**/Tests/**, *Tests*/** |
 | blazor-ui.md | srcs/**/*.Client/**, srcs/**/Components/** |
 | mqtt-communication.md | srcs/**/MqttConnection/**, srcs/**/RobotConnections/** |
 
