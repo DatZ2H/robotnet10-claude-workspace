@@ -1,0 +1,68 @@
+# robotnet10-ai-context .gitignore
+# Repo chỉ chứa docs + .claude — strict security
+
+# === Credentials & Secrets ===
+.env
+.env.*
+*.env
+credentials.*
+secrets.*
+*.key
+*.pem
+*.p12
+*.pfx
+appsettings.Development.json
+appsettings.*.json
+
+# === Source code (NOT part of this repo) ===
+srcs/
+*.cs
+*.csproj
+*.slnx
+*.sln
+*.dll
+*.exe
+
+# === Hardware files (NOT for public) ===
+eds/
+*.eds
+*.ods
+
+# === IPC / native builds ===
+ipc/
+refs/
+
+# === OS files ===
+.DS_Store
+Thumbs.db
+desktop.ini
+*.stackdump
+
+# === IDE ===
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.code-workspace
+
+# === Temp / Backup ===
+*.bak
+*.tmp
+*.swp
+*~
+*.log
+
+# === Note (personal, untracked) ===
+note/
+
+# === Git submodules build artifacts ===
+package/
+debian/
+debs/
+installed/
+
+# === Database ===
+*.db
+*.sqlite
+*.sqlite3
