@@ -2,9 +2,9 @@
 
 ## Project context
 - AMR fleet management system, C# .NET 10 custom framework, Phenikaa-X Robotics
-- 47 projects, 2 apps (RobotApp + FleetManager), 7 communication drivers
+- 43 projects, 2 apps (RobotApp + FleetManager), 7 communication drivers
 - Solution file: `srcs/RobotNet10/RobotNet10.slnx` (modern .slnx format)
-- Active development — NOT greenfield (1,304+ .cs files)
+- Active development — NOT greenfield (~1,300 .cs files)
 
 ## Architecture (3-layer)
 

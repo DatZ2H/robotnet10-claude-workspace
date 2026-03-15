@@ -17,7 +17,7 @@ globs:
 ```
 CartographerSharp (lib, 162 files)  -- SLAM core, Google Cartographer port
     └── CeresSharp (lib, 53 files)  -- Ceres solver wrapper, native interop
-         └── RobotApp/SLAM/ (~50 files) -- Integration layer
+         └── RobotApp/SLAM/ (~57 files) -- Integration layer
               ├── CartographerService  -- State machine: Idle -> Initializing -> Ready -> Localizing/ScanMapping
               └── ISLAMService (unified interface) -- Localization + ScanMapping + Rerender
 ```

@@ -27,7 +27,9 @@ globs:
 | TrafficControl | Route calculation (A*), conflict detection & resolution |
 | ScriptEngine | C# scripting for custom fleet behaviors |
 | MapEditor | Map management (VDMA LIF standard) |
-| FleetManagerConfig | Dynamic configuration (runtime updates) |
+| ConfigManager | Dynamic configuration (runtime updates) |
+| OpenACS | Open Automation Control System integration |
+| RobotController | Robot control logic and command dispatching |
 
 ## VDA 5050 integration
 - Protocol version: v2.1.0 (backward compatible with v2.0.0)

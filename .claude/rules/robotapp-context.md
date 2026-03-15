@@ -23,7 +23,7 @@ globs:
 |--------|---------|
 | Services/Navigation/ | Navigation algorithms, path following, velocity control |
 | Services/State/ | Robot state machine (Appccelerate) |
-| SLAM/ | SLAM integration, Localization, ScanMapping services (~50 files) |
+| SLAM/ | SLAM integration, Localization, ScanMapping services (~57 files) |
 | Hubs/ | SignalR hubs — 13 hub classes (DeviceHub, MotionHub, SLAMHub, NavigationMonitorHub...) |
 | Drivers/ | Hardware driver initialization and management |
 | Motion/ | Kinematics, differential drive, trajectory |
@@ -48,7 +48,7 @@ globs:
 ## Key interfaces to know
 - `RobotStateMachine` (class, not interface) — 24 states via `RobotStateType` enum. Root: System, Auto, Manual, Service, Remote_Override, Stop, Fault. Auto sub-states: Idle, Executing (Moving, ACT), Paused, Canceling, Recovering. ACT sub-states: Docking, Docked, Charging, Undocking, Loading, Unloading, TechAction
 - `IDeviceProvider` — device discovery and lifecycle
-- `ISafety` — speed limits and safety stop flag (IsSafetyStop, MinSpeed, UpdateSpeed)
+- `ISafety` — speed limits and safety stop flag (IsSafetyStop, MinSpeed, UpdateSpeed, SpeedType enum: Order/PLC/SoftSafety, indexer this[SpeedType])
 - `ICiA402Servo` — CiA402 drive control
 - `ISLAMService` — unified SLAM interface (localization + scan mapping + rerender, NO separate ILocalizationService/IScanMappingService)
 - Note: `ILocalization` (Interfaces/) is a high-level pose data abstraction, NOT the same as `ISLAMService` (SLAM/) which handles SLAM-specific operations. `INavigation` has its own `NavigationState` enum (None, Idle, Initializing, Waiting, Moving, Rotating, etc.) — separate from RobotStateMachine states
