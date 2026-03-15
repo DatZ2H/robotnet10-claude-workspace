@@ -2,9 +2,9 @@
 
 ## Project context
 - AMR fleet management system, C# .NET 10 custom framework, Phenikaa-X Robotics
-- 47 projects, 2 apps (RobotApp + FleetManager), 7 communication drivers
+- 43 projects, 2 apps (RobotApp + FleetManager), 7 communication drivers
 - Solution file: `srcs/RobotNet10/RobotNet10.slnx` (modern .slnx format)
-- Active development — NOT greenfield (1,304+ .cs files)
+- Active development — NOT greenfield (~1,300 .cs files)
 
 ## Architecture (3-layer)
 
@@ -61,7 +61,7 @@ Auto-loaded rule: `.claude/rules/safety-critical.md`
 - **Namespace:** `RobotNet10.{ProjectName}[.{SubNamespace}]`
 - **Logging:** NLog, structured logging (KHÔNG string interpolation trong log calls)
 - **Testing:** NUnit + xUnit (mixed per project) + Moq + EF InMemory
-- **VDA 5050:** Models dùng `[JsonPropertyName]` match spec exactly
+- **VDA 5050:** Models dùng `[JsonPropertyName]` match spec exactly — class names có suffix `Msg` (`OrderMsg`, `StateMsg`), error type là `MessageResult<T>`
 
 ## Build & run
 
@@ -96,12 +96,14 @@ docker compose -f srcs/RobotNet10/FleetManager/docker-compose.yml up
 
 | Rule | Trigger (globs) |
 |------|----------------|
-| safety-critical.md | srcs/**/CANOpen/**, CiA402/**, Motion/**, Services/Navigation/**, Services/State/** |
+| safety-critical.md | srcs/**/CANOpen/**, CiA402/**, Motion/**, Services/Navigation/**, Services/State/**, CartographerSharp/**, CeresSharp/**, SLAM/**, Localization/**, **/ISafety.cs, **/ICiA402Servo.cs |
 | robotapp-context.md | srcs/**/RobotApp/** |
 | fleetmanager-context.md | srcs/**/FleetManager/** |
 | slam-cartographer-context.md | srcs/**/CartographerSharp/**, CeresSharp/**, SLAM/**, Localization/** |
 | shared-contracts.md | srcs/**/Shared/** |
-| test-standards.md | srcs/**/*.Test/**, *Tests*/** |
+| test-standards.md | srcs/**/*.Test/**, srcs/**/Tests/**, *Tests*/** |
+| blazor-ui.md | srcs/**/*.Client/**, srcs/**/Components/** |
+| mqtt-communication.md | srcs/**/MqttConnection/**, srcs/**/RobotConnections/** |
 
 ## Available commands
 
@@ -109,6 +111,12 @@ docker compose -f srcs/RobotNet10/FleetManager/docker-compose.yml up
 |---------|-------|
 | /onboard | Onboarding tương tác — chọn domain để bắt đầu |
 | /explain-domain | Trace implementation của domain cụ thể |
+| /safety-review | Review safety-critical changes trước commit |
+| /build [target] | Build shortcut — all, robotapp, fleet, hoặc project name |
+| /test-domain [domain] | Test theo domain — không cần nhớ path + framework |
+| /trace-vda5050 [message] | Trace VDA 5050 message flow (Order/State/InstantAction) |
+| /check-shared | Kiểm tra backward compatibility của Shared/ changes |
+| /device-scaffold [name] | Scaffold device mới theo pattern chuẩn |
 
 ## Khi cần tham khảo thêm
 

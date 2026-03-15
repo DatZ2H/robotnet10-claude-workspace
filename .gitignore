@@ -59,6 +59,13 @@ note/
 # === Claude Code local settings (user-specific) ===
 .claude/settings.local.json
 
+# === Claude Code memory (user-specific, auto-generated) ===
+.claude/memory/user_*.md
+.claude/memory/feedback_*.md
+
+# === Claude Code plans (session-specific) ===
+.claude/plans/
+
 # === Git submodules build artifacts ===
 package/
 debian/

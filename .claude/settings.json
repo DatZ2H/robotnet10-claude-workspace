@@ -4,7 +4,14 @@
       "Bash(dotnet build:*)",
       "Bash(dotnet test:*)",
       "Bash(dotnet run:*)",
-      "Bash(git:*)"
+      "Bash(git:*)",
+      "Bash(docker compose -f:*)",
+      "Bash(docker logs:*)",
+      "Bash(docker ps:*)"
+    ],
+    "deny": [
+      "Bash(rm -rf:*)",
+      "Bash(dotnet ef database update:*)"
     ]
   },
   "hooks": {
@@ -15,6 +22,28 @@
           {
             "type": "command",
             "command": "echo \"RobotNet10 | $(git branch --show-current) | $(git status --porcelain | wc -l) files modified\""
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$(command -v python3 || command -v python) -c \"import sys,json; data=json.load(sys.stdin); p=data.get('file_path',''); zones=['Motion/','CANOpen/','CiA402/','Services/Navigation/','Services/State/']; hits=[z for z in zones if z in p.replace('\\\\','/')]; sys.exit(0) if not hits else (print('SAFETY-CRITICAL FILE: '+p), print('Review checklist in .claude/rules/safety-critical.md before proceeding.'), sys.exit(0))\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$(command -v python3 || command -v python) -c \"import sys,json; data=json.load(sys.stdin); p=data.get('file_path','').replace('\\\\','/'); print('SHARED CONTRACT CHANGED — run: dotnet build srcs/RobotNet10/RobotNet10.slnx') if '/Shared/' in p else None; sys.exit(0)\""
           }
         ]
       }

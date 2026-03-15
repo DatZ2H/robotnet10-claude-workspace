@@ -5,7 +5,7 @@ globs:
   - "srcs/**/Motion/**"
   - "srcs/**/Services/Navigation/**"
   - "srcs/**/Services/State/**"
-  - "srcs/**/Devices/ISafety.cs"
+  - "srcs/**/Interfaces/ISafety.cs"
   - "srcs/**/Devices/ICiA402Servo.cs"
   - "srcs/**/SLAM/**"
   - "srcs/**/CartographerSharp/**"

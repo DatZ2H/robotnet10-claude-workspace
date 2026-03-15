@@ -23,7 +23,7 @@ globs:
 |--------|---------|
 | Services/Navigation/ | Navigation algorithms, path following, velocity control |
 | Services/State/ | Robot state machine (Appccelerate) |
-| SLAM/ | SLAM integration, Localization, ScanMapping services (~50 files) |
+| SLAM/ | SLAM integration, Localization, ScanMapping services (~57 files) |
 | Hubs/ | SignalR hubs — 13 hub classes (DeviceHub, MotionHub, SLAMHub, NavigationMonitorHub...) |
 | Drivers/ | Hardware driver initialization and management |
 | Motion/ | Kinematics, differential drive, trajectory |
@@ -48,7 +48,7 @@ globs:
 ## Key interfaces to know
 - `RobotStateMachine` (class, not interface) — 24 states via `RobotStateType` enum. Root: System, Auto, Manual, Service, Remote_Override, Stop, Fault. Auto sub-states: Idle, Executing (Moving, ACT), Paused, Canceling, Recovering. ACT sub-states: Docking, Docked, Charging, Undocking, Loading, Unloading, TechAction
 - `IDeviceProvider` — device discovery and lifecycle
-- `ISafety` — speed limits and safety stop flag (IsSafetyStop, MinSpeed, UpdateSpeed)
+- `ISafety` — speed limits and safety stop flag (IsSafetyStop, MinSpeed, UpdateSpeed, SpeedType enum: Order/PLC/SoftSafety, indexer this[SpeedType])
 - `ICiA402Servo` — CiA402 drive control
 - `ISLAMService` — unified SLAM interface (localization + scan mapping + rerender, NO separate ILocalizationService/IScanMappingService)
 - Note: `ILocalization` (Interfaces/) is a high-level pose data abstraction, NOT the same as `ISLAMService` (SLAM/) which handles SLAM-specific operations. `INavigation` has its own `NavigationState` enum (None, Idle, Initializing, Waiting, Moving, Rotating, etc.) — separate from RobotStateMachine states
@@ -62,7 +62,22 @@ DeviceBase (abstract)
   -> Blazor Component (UI rendering)
 ```
 
+## Real-time timing constraints
+
+| Path | Cycle | Deadline | Notes |
+|------|-------|----------|-------|
+| IPC (CANOpen PDO) | 50 Hz | 20ms | CSV mode velocity targets to motor driver |
+| Pose extrapolation | 20-100 Hz | 10-50ms | SLAM pose output |
+| Scan matching | 5-20 Hz | 50-200ms | Must NOT block IPC cycle |
+| Navigation loop | 10-20 Hz | 50-100ms | Path following + velocity control |
+| SignalR UI updates | 1-10 Hz | N/A (best effort) | UI refresh, no hard deadline |
+
+## SignalR hubs (13)
+
+DeviceHub, MotionHub, SLAMHub, NavigationMonitorHub, SafetyHub, ScriptHub, DiagnosticHub, MapHub, ConfigHub, LogHub, SystemHub, ModuleHub, TaskHub
+
 ## When editing RobotApp code
-- Check if change affects real-time paths (Navigation, Motion) — these have timing constraints
+- Check if change affects real-time paths (Navigation, Motion) — these have timing constraints (see table above)
+- IPC cycle is 50 Hz (20ms) — blocking operations in the motor control path WILL cause motor stutter or safety fault
 - SignalR hubs are the bridge between backend services and UI — changes propagate to client
 - Script integration allows user-defined behaviors — be careful with Script API surface
