@@ -49,9 +49,9 @@ Các option của script:
 
 | Flag | Tác dụng |
 |------|---------|
-| *(không flag)* | Cài tất cả qua symlink |
-| `--rules-only` | Chỉ copy `CLAUDE.md` + `rules/` (không hooks, không commands) |
-| `--no-hooks` | Cài tất cả nhưng bỏ hooks trong settings.json |
+| *(không flag)* | Cài tất cả qua symlink (thay đổi tự đồng bộ) |
+| `--rules-only` | Chỉ **copy** `CLAUDE.md` + `rules/` (không symlink, không hooks, không commands) |
+| `--no-hooks` | Symlink tất cả nhưng bỏ hooks trong settings.json |
 
 ---
 
@@ -65,7 +65,13 @@ Nếu bạn muốn kiểm soát chính xác những gì được cài, làm theo
 git clone https://github.com/DatZ2H/robotnet10-claude-workspace.git ~/robotnet10-claude-workspace
 ```
 
-Trong các bước dưới, `$WORKSPACE` là đường dẫn tới RobotNet10 workspace của bạn.
+Các lệnh dưới đây dùng bash syntax. Trên Windows, dùng Git Bash hoặc WSL.
+
+Gán biến `$WORKSPACE` trước khi bắt đầu:
+
+```bash
+WORKSPACE=/path/to/your/robotnet10  # Thay bằng đường dẫn thực tế
+```
 
 #### Bước 1 (bắt buộc): Tạo folder `.claude/` và copy `CLAUDE.md`
 
@@ -208,20 +214,28 @@ Nếu bạn không muốn hooks nhưng muốn permissions, tạo file thủ côn
 # Copy docs vào workspace (hoặc để tại context repo, Claude tìm được nếu dùng symlink)
 mkdir -p $WORKSPACE/docs
 
-# SLAM domain (15 files — thuật toán, tuning, Ceres solver)
+# Docs root-level (documentation hub, index, quick start)
+cp ~/robotnet10-claude-workspace/docs/README.md $WORKSPACE/docs/
+cp ~/robotnet10-claude-workspace/docs/DOCUMENTATION_MAP.md $WORKSPACE/docs/
+cp ~/robotnet10-claude-workspace/docs/QUICK_START.md $WORKSPACE/docs/
+
+# SLAM domain (13 files — thuật toán, tuning, Ceres solver)
 cp -r ~/robotnet10-claude-workspace/docs/CartographerSharp/ $WORKSPACE/docs/
 cp -r ~/robotnet10-claude-workspace/docs/Localization/ $WORKSPACE/docs/
 
-# FleetManager (9 files — traffic control, robot connections, VDA 5050)
+# RobotApp (2 files — state management, overview)
+cp -r ~/robotnet10-claude-workspace/docs/robotapp/ $WORKSPACE/docs/
+
+# FleetManager (12 files — traffic control, robot connections, VDA 5050)
 cp -r ~/robotnet10-claude-workspace/docs/fleetmanager/ $WORKSPACE/docs/
 
-# Map Editor (12 files — VDMA LIF, path finding, SVG canvas)
+# Map Editor (16 files — VDMA LIF, path finding, SVG canvas)
 cp -r ~/robotnet10-claude-workspace/docs/MapEditor/ $WORKSPACE/docs/
 
 # Script Engine (13 files — compilation, missions, security)
 cp -r ~/robotnet10-claude-workspace/docs/ScriptEngine/ $WORKSPACE/docs/
 
-# Navigation tuning (6 files)
+# Navigation tuning (7 files)
 cp -r ~/robotnet10-claude-workspace/docs/RobotApp-TunningNav/ $WORKSPACE/docs/
 
 # VDA 5050 protocol
@@ -230,6 +244,9 @@ cp -r ~/robotnet10-claude-workspace/docs/vda5050/ $WORKSPACE/docs/
 # Architecture + Development guides
 cp -r ~/robotnet10-claude-workspace/docs/architecture/ $WORKSPACE/docs/
 cp -r ~/robotnet10-claude-workspace/docs/development/ $WORKSPACE/docs/
+
+# AI agent orientation
+cp -r ~/robotnet10-claude-workspace/docs/ai-guide/ $WORKSPACE/docs/
 ```
 
 ---
@@ -297,11 +314,11 @@ robotnet10-claude-workspace/
 │       └── device-scaffold.md
 │
 ├── docs/                      ← 74 domain knowledge files
-│   ├── CartographerSharp/     ← SLAM (15 files)
-│   ├── fleetmanager/          ← Fleet management (9 files)
+│   ├── CartographerSharp/     ← SLAM (13 files)
+│   ├── fleetmanager/          ← Fleet management (12 files)
 │   ├── ScriptEngine/          ← Scripting (13 files)
-│   ├── MapEditor/             ← Map editor (12 files)
-│   ├── RobotApp-TunningNav/   ← Nav tuning (6 files)
+│   ├── MapEditor/             ← Map editor (16 files)
+│   ├── RobotApp-TunningNav/   ← Nav tuning (7 files)
 │   ├── vda5050/               ← VDA 5050 protocol
 │   ├── architecture/          ← System architecture
 │   ├── development/           ← Developer guides
